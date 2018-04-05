@@ -8,7 +8,7 @@ Base codec functions for bson.
 """
 import struct
 import warnings
-from datetime import datetime
+from datetime import datetime, date, time
 from abc import ABCMeta, abstractmethod
 from uuid import UUID
 from decimal import Decimal
@@ -190,7 +190,7 @@ def encode_value(name, value, buf, traversal_stack,
                 buf.write(encode_int64_element(name, value))
             elif value > 0x7FFFFFFFFFFFFFFF:
                 if value > 0xFFFFFFFFFFFFFFFF:
-                    raise Exception("BSON format supports only int value < %s" % 0xFFFFFFFFFFFFFFFF) 
+                    raise Exception("BSON format supports only int value < %s" % 0xFFFFFFFFFFFFFFFF)
                 buf.write(encode_uint64_element(name, value))
             else:
                 buf.write(encode_int32_element(name, value))
@@ -204,6 +204,8 @@ def encode_value(name, value, buf, traversal_stack,
         buf.write(encode_binary_element(name, value.bytes, binary_subtype=4))
     elif isinstance(value, datetime):
         buf.write(encode_utc_datetime_element(name, value))
+    elif isinstance(value, date):
+        buf.write(encode_utc_datetime_element(name, datetime.combine(value, time.min)))
     elif value is None:
         buf.write(encode_none_element(name, value))
     elif isinstance(value, dict):
