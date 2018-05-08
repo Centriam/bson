@@ -8,7 +8,7 @@ Base codec functions for bson.
 """
 import struct
 import warnings
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 from abc import ABCMeta, abstractmethod
 from uuid import UUID
 from decimal import Decimal
@@ -154,7 +154,8 @@ ELEMENT_TYPES = {
     0x0A: "none",
     0x10: "int32",
     0x11: "uint64",
-    0x12: "int64"
+    0x12: "int64",
+    0x13: "timedelta",
 }
 
 
@@ -206,6 +207,8 @@ def encode_value(name, value, buf, traversal_stack,
         buf.write(encode_utc_datetime_element(name, value))
     elif isinstance(value, date):
         buf.write(encode_utc_datetime_element(name, datetime.combine(value, time.min)))
+    elif isinstance(value, timedelta):
+        buf.write(encode_timedelta_element(name, value))
     elif value is None:
         buf.write(encode_none_element(name, value))
     elif isinstance(value, dict):
@@ -338,6 +341,9 @@ def decode_document(data, base, as_array=False):
         elif element_type == 0x12:  # int64
             value = long_struct.unpack(data[base:base + 8])[0]
             base += 8
+        elif element_type == 0x13:  # timedelta
+            value = timedelta(seconds=double_struct.unpack(data[base: base + 8])[0])
+            base += 8
 
         if as_array:
             retval.append(value)
@@ -377,6 +383,8 @@ def encode_utc_datetime_element(name, value):
                       (value.microsecond / 1000.0)))
     return b"\x09" + encode_cstring(name) + struct.pack("<q", value)
 
+def encode_timedelta_element(name, value):
+    return b"\x13" + encode_cstring(name) + struct.pack("<d", value.total_seconds())
 
 def encode_none_element(name, value):
     return b"\x0a" + encode_cstring(name)
