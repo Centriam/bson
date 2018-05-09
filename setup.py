@@ -5,7 +5,11 @@
 # For licensing, see LICENSE file included in the package.
 import sys
 
-from pip import get_installed_distributions
+try:
+    from pip._internal import get_installed_distributions
+except ImportError:
+    from pip import get_installed_distributions
+
 from setuptools import setup
 from setuptools.command.install import install
 
@@ -27,7 +31,7 @@ class NewInstall(install):
 
 setup(
     name="bson",
-    version="0.5.2",
+    version="0.5.6",
     packages=["bson"],
     install_requires=["pytz>=2010b", "six>=1.9.0"],
     author="Ayun Park",
