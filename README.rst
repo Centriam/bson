@@ -53,3 +53,11 @@ Sending and receiving BSON objects to and from network sockets.
    >>> s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
    >>> s.connect(("127.0.0.1", 12345))
    >>> s.sendobj({u"message" : "hello!"})
+
+
+Uploading new versions using s3pypi
+--------------
+pip install s3pypi
+change version number in setup.py
+s3pypi --bucket pypi.centriam.com
+update version number in cxmanager requirements.pip

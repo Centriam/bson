@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from unittest import TestCase
 
 import pytz
@@ -29,3 +29,14 @@ class TestTimeDelta(TestCase):
         interval = obj2["some_time"]
         seconds_delta = interval.total_seconds() - some_time.total_seconds()
         self.assertTrue(abs(seconds_delta) < 0.001)
+
+class TestTime(TestCase):
+    def test_datetime(self):
+        some_time = time(5, 33)
+        obj = {"utc_time": some_time}
+        serialized = dumps(obj)
+        obj2 = loads(serialized)
+
+        interval = obj2["utc_time"]
+        as_string = interval.isoformat()
+        self.assertTrue(as_string == "05:33:00")
