@@ -156,6 +156,7 @@ ELEMENT_TYPES = {
     0x11: "uint64",
     0x12: "int64",
     0x13: "timedelta",
+    0x14: "time",
 }
 
 
@@ -209,6 +210,8 @@ def encode_value(name, value, buf, traversal_stack,
         buf.write(encode_utc_datetime_element(name, datetime.combine(value, time.min)))
     elif isinstance(value, timedelta):
         buf.write(encode_timedelta_element(name, value))
+    elif isinstance(value, time):
+        buf.write(encode_time_element(name, value))
     elif value is None:
         buf.write(encode_none_element(name, value))
     elif isinstance(value, dict):
@@ -344,7 +347,15 @@ def decode_document(data, base, as_array=False):
         elif element_type == 0x13:  # timedelta
             value = timedelta(seconds=double_struct.unpack(data[base: base + 8])[0])
             base += 8
-
+        elif element_type == 0x14:  # time
+            length = int_struct.unpack(data[base:base + 4])[0]
+            value = data[base + 4: base + 4 + length - 1]
+            if PY3:
+                value = value.decode("utf-8")
+            else:
+                value = unicode(value)
+            base += 4 + length
+            value = datetime.strptime(value, '%H:%M:%S').time()
         if as_array:
             retval.append(value)
         else:
@@ -385,6 +396,9 @@ def encode_utc_datetime_element(name, value):
 
 def encode_timedelta_element(name, value):
     return b"\x13" + encode_cstring(name) + struct.pack("<d", value.total_seconds())
+
+def encode_time_element(name, value):
+    return b"\x14" + encode_cstring(name) + encode_string(value.isoformat())
 
 def encode_none_element(name, value):
     return b"\x0a" + encode_cstring(name)

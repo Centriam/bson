@@ -30,7 +30,7 @@ class NewInstall(install):
 
 
 setup(
-    name="bson",
+    name="cntrm-bson",
     version="0.5.6",
     packages=["bson"],
     install_requires=["pytz>=2010b", "six>=1.9.0"],
